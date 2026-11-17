@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>探索大地變化 3D 互動教具</title>
+<link rel="stylesheet" href="css/main.css">
+<!-- 舊版 Safari 不支援 importmap，以 es-module-shims 補上 -->
+<script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <canvas id="gl"></canvas>
+  <div id="labels"></div>
+
+  <div id="loader"><div class="spin"></div><p id="loaderText">正在堆疊地層、長出山脈…</p></div>
+  <div id="fade"></div>
+
+  <!-- 標題卡 -->
+  <header id="titleCard" class="glass">
+    <div class="logo" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M2 19l6.5-11 4 6 2.5-3.5L22 19z" fill="rgba(255,255,255,.25)"/><path d="M2 22h20"/></svg>
+    </div>
+    <div class="tt">
+      <h1 id="hTitle">探索大地變化</h1>
+      <p id="hSub">把游標移到（或點一下）地圖上的區塊，選一個地方出發！</p>
+    </div>
+    <div class="grades" id="grades">
+      <button class="on" data-g="e">國小（高年級）</button>
+      <button data-g="j" disabled title="規劃中">國中（三年級）</button>
+    </div>
+  </header>
+
+  <!-- 工具列 -->
+  <nav id="toolbar" class="glass" aria-label="工具列">
+    <button data-act="back" id="btnBack" hidden title="回到大地圖">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-6 4 6 4"/><path d="M3 8h11a6 6 0 0 1 0 12H8"/></svg><span>大地圖</span></button>
+    <button data-act="home" title="回到全景">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>全景</span></button>
+    <button data-act="record" title="學習紀錄">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span>紀錄</span></button>
+    <button data-act="fullscreen" title="全螢幕">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg><span>全螢幕</span></button>
+  </nav>
+
+  <!-- 大地圖：區塊資訊卡 -->
+  <div id="zoneCard" class="glass" aria-live="polite"></div>
+
+  <!-- 區域內：節點快速跳轉 -->
+  <div id="stations" class="glass" aria-label="學習節點"></div>
+
+  <!-- 知識面板 -->
+  <aside id="panel" class="glass" role="dialog" aria-labelledby="pTitle">
+    <button class="close" id="pClose" aria-label="關閉">×</button>
+    <div class="p-head">
+      <div class="p-num" id="pNum"></div>
+      <div><div class="p-en" id="pEn"></div><h2 id="pTitle"></h2></div>
+    </div>
+    <div class="p-tabs" id="pTabs" role="tablist"></div>
+    <div class="p-body" id="pBody"></div>
+  </aside>
+
+  <!-- 通用彈窗（探究、學習紀錄） -->
+  <div id="modal" role="dialog" aria-modal="true">
+    <div class="sheet glass">
+      <button class="close" id="mClose" aria-label="關閉">×</button>
+      <div id="mBody"></div>
+    </div>
+  </div>
+
+  <div id="hint" class="glass"></div>
+  <div id="toast"></div>
+  <div id="ver">整合版 v0.9</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+window.THREE = THREE; window.OrbitControls = OrbitControls;
+// 一般（非模組）腳本：本機直接點兩下 index.html 也能執行，上傳 GitHub Pages 也相同
+const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+for (const f of ['js/core.js', 'js/ui.js', 'js/world.js']) await load(f);
+window.GROUND.loadScript = load;
+window.GROUND.start();
+</script>
+</body>
+</html>
