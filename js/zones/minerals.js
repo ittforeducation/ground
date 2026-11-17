@@ -18,6 +18,8 @@ const TX = 1.2, TZ = 2.2;                                           // 標本桌
 const GEO = [-4.2, 1.25, 1.6];                                      // 晶洞
 const ATLAS = [['quartz', '石英'], ['feldspar', '長石'], ['biotite', '黑雲母'], ['muscovite', '白雲母'], ['calcite', '方解石'], ['graphite', '石墨'], ['talc', '滑石'], ['sulfur', '硫磺'], ['gypsum', '石膏'], ['pyrite', '黃鐵礦']];
 const MOHS = [['talc', '滑石'], ['gypsum', '石膏'], ['calcite', '方解石'], ['fluorite', '螢石'], ['apatite', '磷灰石'], ['orthoclase', '正長石'], ['quartz', '石英'], ['topaz', '黃玉'], ['corundum', '剛玉'], ['diamond', '金剛石']];
+const MOHS_PICS = { fluorite: [['fluorite', '白色（立方體）'], ['fluorite-green', '綠色'], ['fluorite-octa', '八面體'], ['fluorite-octa-group', '八面體（一群）']], corundum: [['corundum-rough', '原礦（藍寶石）'], ['corundum', '切磨後的寶石']] };
+const ATLAS_PICS = { biotite: [['biotite', '一片薄片'], ['mica-mixed', '和白雲母長在一起']], pyrite: [['pyrite', '立方體'], ['pyrite-group', '一群小晶體'], ['pyrite-striated', '晶面上的條紋']], muscovite: [['muscovite', '一片薄片'], ['muscovite-rose', '原礦'], ['muscovite-cluster', '原礦']] };
 
 /* 地表貼圖：逐像素依高度與坡度上色（坑底、平臺、岩壁的層狀紋、坑緣草地） */
 function groundTexture(S) {
@@ -371,7 +373,7 @@ G.registerZone('minerals', {
         <div class="tip"><b>提醒：</b>觀察礦物時不可以用嘴巴嘗。聞氣味時，要用手輕輕把氣味搧向鼻子。</div>
         <button class="cta" data-go="cards">打開圖鑑 →</button>`,
       overview: atlasOverview,
-      cards: ATLAS.map(([key, name]) => key !== 'quartz' ? card(name, key) : { ...card('石英與水晶', key),
+      cards: ATLAS.map(([key, name]) => key !== 'quartz' ? (ATLAS_PICS[key] ? { ...card(name, key), pics: ATLAS_PICS[key].map(([f, cap]) => ({ svg: minSVG(key), photo: `img/minerals/${f}.jpg`, cap })) } : card(name, key)) : { ...card('石英與水晶', key),
         pics: [{ svg: minSVG('quartz'), photo: 'img/minerals/quartz.jpg', cap: '石英' }, { svg: minSVG('quartz'), photo: 'img/minerals/rock-crystal.jpg', cap: '水晶（白水晶）' }],
         facts: [...FACTS.quartz, ['石英和水晶', '<em>水晶就是純淨、結晶良好（大而透明）的石英</em>，兩者成分相同，都是二氧化矽（SiO<sub>2</sub>）。'],
           ['比一比', '一般的石英常含雜質，又擠在岩石裡長不大，多半是白色、半透明。有空間慢慢長大的才會變成透明的水晶。']] }),
@@ -415,8 +417,8 @@ G.registerZone('minerals', {
         <div class="tip"><b>注意：</b>硬度的數字只代表「順序」。金剛石是 10、滑石是 1，但金剛石不只比滑石硬 10 倍。</div>
         <button class="cta" data-go="cards">打開十種標準礦物的圖鑑 →</button>`,
       overview: mohsOverview,
-      cards: MOHS.map(([key, name], k) => key !== 'fluorite' ? card(`${k + 1}　${name}`, key)
-        : { ...card(`${k + 1}　${name}`, key), pics: [{ svg: minSVG(key), photo: 'img/minerals/fluorite.jpg', cap: '白色（立方體）' }, { svg: minSVG(key), photo: 'img/minerals/fluorite-green.jpg', cap: '綠色' }] }),
+      cards: MOHS.map(([key, name], k) => !MOHS_PICS[key] ? card(`${k + 1}　${name}`, key)
+        : { ...card(`${k + 1}　${name}`, key), pics: MOHS_PICS[key].map(([f, cap]) => ({ svg: minSVG(key), photo: `img/minerals/${f}.jpg`, cap })) }),
       onCards: b => pager(b, MOHS.map((m, k) => `${k + 1} ${m[1]}`)) },
     { id: 'identify', num: '5', title: '辨認礦物', en: 'Identify Minerals', color: '#0369a1', ready: true, at: [4.6, 2.1, .6],
       cam: { pos: [6.2, 4, 8.6], target: [6.2, .9, .8] },

@@ -208,3 +208,6 @@ table.rec th { color: var(--sub); white-space: nowrap; }
 .rcard .pics .pic svg { width: 86%; }
 .rcard .pic .pcap { position: absolute; left: 8px; top: 8px; z-index: 1; padding: 2px 9px; border-radius: 999px; background: rgba(255,255,255,.88); color: var(--ink); font-size: 13px; font-weight: 800; pointer-events: none; }
 .rcard .pics .pic:only-child { aspect-ratio: 16 / 9; }
+
+/* 4 張以上的並排圖改成兩欄 */
+.rcard .pics:has(> .pic:nth-child(4)){grid-template-columns:1fr 1fr}
