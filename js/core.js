@@ -317,6 +317,19 @@ G.start = () => {
   controls.touches = { ONE: T.TOUCH.ROTATE, TWO: T.TOUCH.DOLLY_PAN };
   controls.listenToKeyEvents(window);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
+  // 滑鼠滾輪縮放改由這裡處理，不用 OrbitControls 內建的：three r160 用「devicePixelRatio 取整數」當分母，
+  // 螢幕或瀏覽器縮放比例小於 100%（例如 90%）時分母變 0，滾一格就直接跳到最近或最遠；各廠牌滑鼠一格的滾動量也差很多。
+  // 這裡把每次滾動換成像素、最多算一格，每格固定改變約 4% 的距離。觸控的雙指縮放仍由 OrbitControls 處理。
+  canvas.parentElement.addEventListener('wheel', e => {
+    if (e.target !== canvas) return;
+    e.preventDefault(); e.stopPropagation();
+    if (!controls.enabled || !controls.enableZoom) return;
+    const d = U.clamp(e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 400 : 1), -100, 100);
+    if (!d) return;
+    const off = camera.position.clone().sub(controls.target);
+    off.setLength(U.clamp(off.length() * Math.pow(0.95, -controls.zoomSpeed * d / 100), controls.minDistance, controls.maxDistance));
+    camera.position.copy(controls.target).add(off); controls.update();
+  }, { capture: true, passive: false });
   const resize = () => { const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
   addEventListener('resize', resize); resize();
 
