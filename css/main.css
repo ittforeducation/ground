@@ -201,3 +201,10 @@ table.rec th { color: var(--sub); white-space: nowrap; }
   #zBox.has .ztxt .bd { padding: 8px 4px 4px; }
 }
 #zClose { position: fixed; top: 14px; right: 16px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fff; color: #1f3345; font-size: 20px; font-weight: 900; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+
+/* 圖鑑卡並排兩張圖（c.pics） */
+.rcard .pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 3px; background: var(--line); }
+.rcard .pics .pic { aspect-ratio: 4 / 3; }
+.rcard .pics .pic svg { width: 86%; }
+.rcard .pic .pcap { position: absolute; left: 8px; top: 8px; z-index: 1; padding: 2px 9px; border-radius: 999px; background: rgba(255,255,255,.88); color: var(--ink); font-size: 13px; font-weight: 800; pointer-events: none; }
+.rcard .pics .pic:only-child { aspect-ratio: 16 / 9; }

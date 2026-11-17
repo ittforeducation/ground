@@ -38,7 +38,15 @@ function faceTexture() {
   g.strokeStyle = 'rgba(40,30,25,.4)'; g.lineWidth = 2.5; for (let i = 0; i < 7; i++) { g.beginPath(); for (let x = X0; x <= X1; x += .2) g.lineTo(X(x), Y(B[i](x))); g.stroke(); }
   // 沉積岩層裡的化石（之後「化石」節點使用）
   g.strokeStyle = 'rgba(255,250,235,.85)'; g.lineWidth = 2.2;
-  for (const [fx, fy] of [[7.2, -1.0], [9.4, -1.05], [10.8, -1.9], [8.3, -1.85], [6.2, -2.7]]) { g.beginPath(); for (let a = 0; a < 11; a += .25) { const q = .012 * a + .02; g.lineTo(X(fx + Math.cos(a) * q * a * .9), Y(fy + Math.sin(a) * q * a * .9)); } g.stroke(); }
+  // 沉積岩層裡的化石：小顆的菊石（實心外殼＋螺旋＋殼紋）和貝殼（半徑以世界單位計，約 0.12–0.16，比一層岩層薄）
+  const fos = (fx, fy, R, draw) => { const sx = Math.abs(X(fx + R) - X(fx)), sy = Math.abs(Y(fy + R) - Y(fy)); g.save(); g.translate(X(fx), Y(fy)); g.scale(sx, sy); g.lineWidth = 1.6 / sx; draw(); g.restore(); };
+  const ammonite = () => { g.fillStyle = '#efe5cf'; g.strokeStyle = '#6f6047'; g.beginPath(); g.arc(0, 0, 1, 0, 7); g.fill(); g.stroke();
+    g.beginPath(); for (let t = 0; t <= 4 * Math.PI; t += .1) { const rr = 1 - t / (4 * Math.PI) * .92; g.lineTo(Math.cos(t) * rr * .98, Math.sin(t) * rr * .98); } g.stroke();
+    g.strokeStyle = 'rgba(111,96,71,.6)'; for (let t = 0; t < 2 * Math.PI; t += .38) { const r1 = 1 - (t + 2 * Math.PI) / (4 * Math.PI) * .92; g.beginPath(); g.moveTo(Math.cos(t) * r1, Math.sin(t) * r1); g.lineTo(Math.cos(t) * .97, Math.sin(t) * .97); g.stroke(); } };
+  const clam = () => { g.fillStyle = '#f2ead8'; g.strokeStyle = '#6f6047'; g.beginPath(); g.moveTo(0, .55); g.arc(0, .1, 1, Math.PI * 1.05, Math.PI * 1.95); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(111,96,71,.6)'; for (let k = -3; k <= 3; k++) { g.beginPath(); g.moveTo(0, .55); g.lineTo(Math.sin(k * .38) * .95, .1 - Math.cos(k * .38) * .9); g.stroke(); } };
+  for (const [fx, fy, R] of [[7.2, -1.0, .15], [9.4, -1.05, .12], [10.8, -1.9, .14], [8.3, -1.85, .16], [6.2, -2.7, .13]]) fos(fx, fy, R, ammonite);
+  for (const [fx, fy, R] of [[8.1, -1.1, .11], [9.9, -1.95, .1]]) fos(fx, fy, R, clam);
   // 岩漿庫周圍被烤熱的岩石
   const mx = VX, my = -6.9;
   let gr = g.createRadialGradient(X(mx), Y(my), s * 1.5, X(mx), Y(my), s * 6.6); gr.addColorStop(0, 'rgba(255,90,30,.55)'); gr.addColorStop(1, 'rgba(255,90,30,0)');
@@ -148,7 +156,7 @@ function build() {
 
 /* ---------- 岩石繪圖（SVG）：沒有實物照片時顯示 ---------- */
 function rockSVG(kind) {
-  const K = { basalt: [21, '#3b3e44', 0], andesite: [34, '#8a8f95', 1], granite: [55, '#e6c9bd', 2], sandstone: [61, '#d2ad74', 1], shale: [67, '#6f6c6b', 3], limestone: [73, '#d3cdbb', 0], slate: [79, '#3d444d', 3], marble: [83, '#f0eee9', 2], gneiss: [89, '#d8d2cc', 1] }[kind];
+  const K = { basalt: [21, '#3b3e44', 0], andesite: [34, '#8a8f95', 1], granite: [55, '#e6c9bd', 2], sandstone: [61, '#d2ad74', 1], shale: [67, '#6f6c6b', 3], limestone: [73, '#d3cdbb', 0], slate: [79, '#3d444d', 3], marble: [83, '#f0eee9', 2], gneiss: [89, '#d8d2cc', 1], conglomerate: [97, '#c9a66b', 2], schist: [103, '#8f9c82', 3], reef: [109, '#e8dfc8', 0] }[kind];
   const r = U.rng(K[0]), out = [], id = 'rk_' + kind, base = K[1], f = n => n.toFixed(1);
   if (kind === 'sandstone') { for (let i = 0; i < 560; i++) out.push(`<circle cx="${f(r() * 320)}" cy="${f(r() * 200)}" r="${f(.6 + r() * 1.3)}" fill="${['#b98f55', '#e9cf9e', '#a67c48', '#f1dfb6'][i % 4]}"/>`); for (const y of [48, 86, 122, 156]) out.push(`<path d="M0 ${y}Q160 ${y + 10} 320 ${y - 4}" stroke="rgba(120,80,40,.38)" stroke-width="2.2" fill="none"/>`); }
   if (kind === 'shale') { for (let y = 8; y < 200; y += 3.5 + r() * 5) out.push(`<path d="M0 ${f(y)}Q160 ${f(y + (r() - .5) * 7)} 320 ${f(y + (r() - .5) * 5)}" stroke="${r() < .5 ? '#4c4a4a' : '#8d8987'}" stroke-width="${f(.7 + r() * 1.3)}" fill="none"/>`); }
@@ -156,6 +164,19 @@ function rockSVG(kind) {
   if (kind === 'slate') { for (let i = 0; i < 80; i++) { const y = r() * 230; out.push(`<path d="M0 ${f(y)}L320 ${f(y - 22)}" stroke="${r() < .5 ? 'rgba(255,255,255,.09)' : 'rgba(0,0,0,.3)'}" stroke-width="${f(.6 + r())}"/>`); } }
   if (kind === 'marble') { for (let i = 0; i < 11; i++) { const y = r() * 200; out.push(`<path d="M-10 ${f(y)}C80 ${f(y + (r() - .5) * 90)} 200 ${f(y + (r() - .5) * 90)} 330 ${f(y + (r() - .5) * 60)}" stroke="#8f96a0" stroke-opacity="${f(.2 + r() * .45)}" stroke-width="${f(1 + r() * 4)}" fill="none"/>`); } for (let i = 0; i < 160; i++) out.push(`<circle cx="${f(r() * 320)}" cy="${f(r() * 200)}" r="${f(.5 + r())}" fill="#fff"/>`); }
   if (kind === 'gneiss') { let y = -10, dark = false; while (y < 215) { const h = 5 + r() * 12; out.push(`<path d="M-10 ${f(y)}C80 ${f(y - 16)} 200 ${f(y + 16)} 330 ${f(y - 6)}" stroke="${dark ? '#2f2c2e' : r() < .5 ? '#efe9e2' : '#d9a79b'}" stroke-width="${f(h)}" fill="none"/>`); y += h * .85; dark = !dark; } for (let i = 0; i < 200; i++) out.push(`<circle cx="${f(r() * 320)}" cy="${f(r() * 200)}" r="${f(.5 + r())}" fill="${r() < .5 ? '#fff' : '#333'}" fill-opacity=".5"/>`); }
+  if (kind === 'conglomerate') {          // 礫岩：大小不一、磨圓的礫石，被細砂黏在一起
+    for (let i = 0; i < 420; i++) out.push(`<circle cx="${f(r() * 320)}" cy="${f(r() * 200)}" r="${f(.6 + r() * 1.1)}" fill="${['#b08a50', '#e2c890', '#9c7a46'][i % 3]}"/>`);
+    const pb = []; for (let k = 0; k < 400 && pb.length < 34; k++) { const x = r() * 320, y = r() * 200, a = 7 + r() * 17; if (pb.some(p => Math.hypot(p[0] - x, p[1] - y) < (p[2] + a) * .92)) continue; pb.push([x, y, a]); }
+    for (const [x, y, a] of pb) { const c = ['#efe6d4', '#8d8a86', '#c98f6a', '#5f5b57', '#d9cdb4', '#a9a49b'][Math.floor(r() * 6)], rot = f(r() * 180);
+      out.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(a)}" ry="${f(a * (.62 + r() * .3))}" fill="${c}" stroke="rgba(60,40,20,.45)" stroke-width="1.2" transform="rotate(${rot} ${f(x)} ${f(y)})"/><ellipse cx="${f(x - a * .3)}" cy="${f(y - a * .25)}" rx="${f(a * .35)}" ry="${f(a * .18)}" fill="#fff" fill-opacity=".3" transform="rotate(${rot} ${f(x)} ${f(y)})"/>`); } }
+  if (kind === 'schist') {                // 片岩：細細的波浪狀薄層，片狀礦物排成同一方向、閃閃發亮
+    for (let y = -6; y < 214; y += 2.5 + r() * 3.5) out.push(`<path d="M-10 ${f(y)}C70 ${f(y - 9)} 150 ${f(y + 9)} 230 ${f(y - 5)}S310 ${f(y + 6)} 330 ${f(y)}" stroke="${['#6f7d63', '#a9b597', '#7f8a73', '#c4ccb4'][Math.floor(r() * 4)]}" stroke-width="${f(1 + r() * 2.2)}" fill="none"/>`);
+    for (let i = 0; i < 150; i++) { const x = r() * 320, y = r() * 200, w = 3 + r() * 5; out.push(`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="1.3" fill="#fff" fill-opacity="${f(.35 + r() * .5)}" transform="rotate(${f(-6 + r() * 12)} ${f(x)} ${f(y)})"/>`); } }
+  if (kind === 'reef') {                  // 礁岩：珊瑚的枝狀、管狀骨骼和貝殼碎片黏在一起，有很多孔洞
+    for (let i = 0; i < 260; i++) out.push(`<circle cx="${f(r() * 320)}" cy="${f(r() * 200)}" r="${f(.6 + r() * 1.4)}" fill="${r() < .5 ? '#cfc4a6' : '#f5f0e2'}"/>`);
+    for (let i = 0; i < 16; i++) { const x = r() * 320, y = r() * 200; let d = `M${f(x)} ${f(y)}`, px = x, py = y; for (let k = 0; k < 4; k++) { px += (r() - .5) * 26; py -= 8 + r() * 12; d += `L${f(px)} ${f(py)}`; } out.push(`<path d="${d}" stroke="#fbf8ef" stroke-width="${f(4 + r() * 3)}" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="${d}" stroke="#d9cfb4" stroke-width="1.2" stroke-dasharray="2 3" fill="none"/>`); }
+    for (let i = 0; i < 60; i++) { const x = r() * 320, y = r() * 200, a = 1.5 + r() * 4.5; out.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(a)}" ry="${f(a * .75)}" fill="#7d7158" fill-opacity=".75"/>`); }
+    for (let i = 0; i < 10; i++) { const x = r() * 320, y = r() * 200, a = 5 + r() * 6; out.push(`<path d="M${f(x - a)} ${f(y)}a${f(a)} ${f(a * .8)} 0 0 1 ${f(a * 2)} 0z" fill="#f3e9d6" stroke="#b9a988" stroke-width="1" transform="rotate(${f(r() * 360)} ${f(x)} ${f(y)})"/>`); } }
   if (kind === 'basalt') { for (let i = 0; i < 260; i++) out.push(`<circle cx="${r() * 320}" cy="${r() * 200}" r="${.6 + r() * 1.3}" fill="${r() < .5 ? '#2a2c31' : '#565a62'}"/>`); for (let i = 0; i < 22; i++) { const x = r() * 320, y = r() * 200, a = 2 + r() * 4; out.push(`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${a * .7}" fill="#1f2125"/><path d="M${x - a} ${y + 1}a${a} ${a * .7} 0 0 0 ${a * 2} 0" stroke="#6a6f78" fill="none" stroke-width=".8"/>`); } }
   if (kind === 'andesite') { for (let i = 0; i < 300; i++) out.push(`<circle cx="${r() * 320}" cy="${r() * 200}" r="${.7 + r() * 1.4}" fill="${r() < .5 ? '#73787f' : '#a3a8ae'}"/>`); for (let i = 0; i < 46; i++) { const x = r() * 320, y = r() * 200, w = 3 + r() * 6; out.push(`<rect x="${x}" y="${y}" width="${w}" height="${w * (.35 + r() * .3)}" fill="${r() < .6 ? '#eef0ee' : '#2b2c30'}" transform="rotate(${r() * 180} ${x} ${y})"/>`); } }
   if (kind === 'granite') { for (let i = 0; i < 330; i++) { const x = r() * 320, y = r() * 200, q = r(), a = 5 + r() * 9; out.push(`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${a * (.5 + r() * .4)}" fill="${q < .32 ? '#f7f3ea' : q < .6 ? '#dc9d92' : q < .82 ? '#b9b4ad' : '#2d2a2b'}" transform="rotate(${r() * 180} ${x} ${y})"/>`); } }
@@ -349,9 +370,12 @@ G.registerZone('rocks', {
         <p>不同時期堆積的碎屑，顆粒大小和顏色不一樣，所以沉積岩常有一層層的紋路，稱為<em>層理</em>。</p>
         <p>如果岩層沒有被翻動過，越下面的岩層越早堆積，年代也越老。</p>
         <div class="tip"><b>看看剖面：</b>右邊的海底正有泥沙慢慢沉下來。火山右側地底那些一層層不同顏色的岩層，就是沉積岩。</div>
-        <p>依照碎屑的種類和顆粒大小，沉積岩有不同的名字。到「圖鑑」認識砂岩、頁岩和石灰岩。</p>`,
-      cardsIntro: '<p>三種常見的沉積岩。比較它們的顆粒大小，想想它們是由什麼堆積而成的。</p>',
+        <p>依照碎屑的種類和顆粒大小，沉積岩有不同的名字。到「圖鑑」認識礫岩、砂岩、頁岩、石灰岩和礁岩。</p>`,
+      cardsIntro: '<p>五種常見的沉積岩，前三種依顆粒由大到小排列。比較它們的顆粒，想想它們是由什麼堆積而成的。</p>',
       cards: [
+        { name: '礫岩', en: 'Conglomerate', photo: 'img/rocks/conglomerate.jpg', svg: rockSVG('conglomerate'), facts: [
+          ['外觀', '看得到一顆顆大小不一、邊角圓圓的礫石，礫石之間填滿細砂。'], ['成因', '礫石和砂堆積後被壓緊、黏結而成。'],
+          ['特別的地方', '礫石被流水搬運、互相碰撞，邊角才會磨圓。顆粒是沉積岩裡最大的。'], ['臺灣哪裡看', '苗栗縣三義火炎山。']] },
         { name: '砂岩', en: 'Sandstone', photo: 'img/rocks/sandstone.jpg', svg: rockSVG('sandstone'), facts: [
           ['外觀', '黃褐色或灰色，摸起來粗粗的，看得到一粒粒的砂。'], ['成因', '砂粒堆積後被壓緊、黏結而成。'],
           ['特別的地方', '軟硬不同的砂岩層受到風和海浪侵蝕，會變成奇特的造型。'], ['臺灣哪裡看', '新北市野柳（女王頭）、瑞芳南雅奇岩。']] },
@@ -361,6 +385,9 @@ G.registerZone('rocks', {
         { name: '石灰岩', en: 'Limestone', photo: 'img/rocks/limestone.jpg', svg: rockSVG('limestone'), facts: [
           ['外觀', '白色、灰白色或淡黃色，有時看得到貝殼或珊瑚的碎片。'], ['成因', '珊瑚、貝殼等生物的遺骸堆積、黏結而成。'],
           ['特別的地方', '是製造水泥的重要原料；會被雨水慢慢溶蝕，形成洞穴。'], ['臺灣哪裡看', '屏東縣墾丁、高雄市壽山。']] },
+        { name: '礁岩', en: 'Reef Rock', photo: 'img/rocks/reef.jpg', svg: rockSVG('reef'), facts: [
+          ['外觀', '白色或淡黃色，看得到珊瑚的枝狀、管狀骨骼和貝殼，有許多大大小小的孔洞。'], ['成因', '珊瑚礁裡的珊瑚、貝殼等生物骨骼堆積、黏結而成，是石灰岩的一種。'],
+          ['特別的地方', '常保留珊瑚原本的樣子，裡面的珊瑚就是化石。看到礁岩，表示那裡以前是溫暖的淺海。'], ['臺灣哪裡看', '屏東縣墾丁、小琉球。']] },
       ] },
     { id: 'metamorphic', num: '3', title: '變質岩', en: 'Metamorphic Rock', color: '#475569', ready: true, at: [3.2, -4.8, .2],
       cam: { pos: [8.5, -2.6, 20], target: [8.5, -4.4, 0] },
@@ -369,15 +396,18 @@ G.registerZone('rocks', {
         <p>岩石被埋到地底深處，或是靠近高溫的岩漿時，會受到<em>高溫</em>和<em>高壓</em>的作用。</p>
         <p>岩石沒有熔化，但是裡面礦物的排列和樣子改變了，變成另一種岩石，就叫做<em>變質岩</em>。</p>
         <h3>誰變成誰？</h3>
-        <div class="two"><div><b>頁岩 → 板岩</b>變得更堅硬，可以劈成平整的薄板。</div><div><b>石灰岩 → 大理岩</b>顆粒變大、變得亮晶晶。</div></div>
+        <div class="two"><div><b>頁岩 → 板岩 → 片岩</b>先變成能劈成薄板的板岩；溫度壓力更高，變成會閃亮的片岩。</div><div><b>石灰岩 → 大理岩</b>顆粒變大、變得亮晶晶。</div></div>
         <div class="two"><div><b>花岡岩 → 片麻岩</b>礦物排成深淺相間的條紋。</div><div><b>原來的岩石</b>火成岩、沉積岩，甚至變質岩，都可能再變質。</div></div>
         <div class="tip"><b>看看剖面：</b>沉積岩層下面顏色較深、有波浪紋路的就是變質岩。它靠近岩漿庫，又被上面厚厚的岩層壓著。</div>
         <p>岩石受到強大的壓力時，裡面的礦物顆粒會怎麼排列？先猜猜看，再用探究活動「擠」給你看。</p>`,
-      cardsIntro: '<p>三種常見的變質岩。想想它們原本是哪一種岩石，變質後多了什麼特徵。</p>',
+      cardsIntro: '<p>四種常見的變質岩。想想它們原本是哪一種岩石，變質後多了什麼特徵。</p>',
       cards: [
         { name: '板岩', en: 'Slate', photo: 'img/rocks/slate.jpg', svg: rockSVG('slate'), facts: [
           ['外觀', '深灰色或黑色，顆粒很細，表面平整。'], ['成因', '頁岩受到高溫高壓變質而成。'],
           ['特別的地方', '容易劈成平整的薄板，原住民族用它來蓋石板屋。'], ['臺灣哪裡看', '中央山脈、屏東縣霧臺的石板屋。']] },
+        { name: '片岩', en: 'Schist', photo: 'img/rocks/schist.jpg', svg: rockSVG('schist'), facts: [
+          ['外觀', '有一層層細細的波浪紋，表面閃閃發亮，常帶綠色或灰色。'], ['成因', '頁岩、板岩等岩石受到更高的溫度和壓力變質而成。'],
+          ['特別的地方', '雲母等片狀礦物長大、排成同一個方向，所以會反光，也容易剝成一片片。'], ['臺灣哪裡看', '花蓮縣太魯閣、中央山脈東側。']] },
         { name: '大理岩', en: 'Marble', photo: 'img/rocks/marble.jpg', svg: rockSVG('marble'), facts: [
           ['外觀', '白色或灰白色，常有灰黑色的彎曲花紋，顆粒亮晶晶。'], ['成因', '石灰岩受到高溫高壓變質而成。'],
           ['特別的地方', '磨光後花紋很漂亮，常用來做建材和雕刻。'], ['臺灣哪裡看', '花蓮縣太魯閣峽谷。']] },
@@ -408,7 +438,7 @@ G.registerZone('rocks', {
         <h3>化石告訴我們什麼？</h3>
         <p>化石就像大地的日記。如果在高山的岩層裡找到貝類化石，表示那裡很久以前曾經是海底。</p>
         <p>岩層沒有被翻動時，越下面的岩層越老，裡面的化石也是越古老的生物留下的。</p>
-        <div class="tip"><b>看看剖面：</b>找找看白色的螺旋形化石。它們藏在哪一類岩石的岩層裡？</div>
+        <div class="tip"><b>看看剖面：</b>找找看螺旋形的菊石和扇形的貝殼化石。它們藏在哪一類岩石的岩層裡？</div>
         <p>火成岩、沉積岩、變質岩，哪一類最容易找到化石？先預測，再看看貝殼在三種環境裡的遭遇。</p>`,
       cardsIntro: '<p>化石分成實體化石和生痕化石。下面三張都是繪圖，看看它們各屬於哪一種。</p>',
       cards: [

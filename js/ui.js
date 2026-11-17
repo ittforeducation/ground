@@ -61,13 +61,17 @@ ui.show = t => { if (cur) show(t); }; ui.tab = () => tab;
 /* 圖鑑卡：預設顯示 SVG 繪圖；若 img/ 資料夾放了同名照片就自動顯示實物照（可切換） */
 function card(c) {
   if (c.html) return c.html;      // 自訂內容的字卡（例：總覽表）
+  // c.pics：同一張卡並排兩張以上的圖（例：石英與水晶比較、礦物與產品），每張 {svg, photo, cap}；沒有 photo 的只顯示繪圖
+  const pic = p => `<div class="pic">${p.svg || ''}${p.photo ? `<img data-src="${p.photo}" alt="${p.cap || c.name}實物照片"><button class="sw">看繪圖</button>` : ''}${p.cap ? `<span class="pcap">${p.cap}</span>` : ''}</div>`;
+  if (c.pics) return `<div class="rcard"><div class="pics">${c.pics.map(pic).join('')}</div>
+    <div class="bd"><h4>${c.name}<span class="en">${c.en || ''}</span></h4><dl>${c.facts.map(f => `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('')}</dl></div></div>`;
   return `<div class="rcard"><div class="pic">${c.svg}<img data-src="${c.photo}" alt="${c.name}實物照片"><button class="sw">看繪圖</button></div>
     <div class="bd"><h4>${c.name}<span class="en">${c.en || ''}</span></h4><dl>${c.facts.map(f => `<dt>${f[0]}</dt><dd>${f[1]}</dd>`).join('')}</dl></div></div>`;
 }
 function wirePhotos() {
   body.querySelectorAll('.pic img[data-src]').forEach(img => {
     const pic = img.parentNode, sw = pic.querySelector('.sw');
-    img.onload = () => pic.classList.add('photo'); img.onerror = () => img.remove();
+    img.onload = () => pic.classList.add('photo'); img.onerror = () => { if (pic.querySelector('svg')) img.remove(); else pic.remove(); };      // 沒有繪圖可替代的並排圖（c.pics）就整格拿掉
     img.src = img.dataset.src;
     sw.onclick = () => { const d = pic.classList.toggle('draw'); sw.textContent = d ? '看實物照' : '看繪圖'; };
   });
